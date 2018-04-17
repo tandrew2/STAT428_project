@@ -1,0 +1,54 @@
+---
+title: "group_proj_428"
+author: "YUE WAN"
+date: "4/11/2018"
+output: html_document
+---
+
+```{r}
+library(readxl)
+library(tidyr)
+library(ggplot2)
+library(dplyr)
+```
+
+Cleaning the data:
+
+```{r}
+gasoline_wide = read_xlsx("gasoline_price.xlsx")
+gasoline = gather(gasoline_wide, key = "Month", value = "Price", Jan:Dec)
+
+gasoline$Month = as.factor(gasoline$Month)
+gasoline$Month = factor(gasoline$Month, levels = c("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"))
+```
+
+
+```{r}
+year_1976 = gasoline[gasoline$Year == "1976",]
+hist(year_1976$Price, breaks = 12)
+ggplot(year_1976) + geom_bar(aes(x = Month, y = Price), stat = "identity")
+
+
+ggplot(gasoline) + geom_bar(aes(x = Year,y = Price), stat = "identity") + facet_wrap("Month")
+```
+
+```{r}
+
+gasoline = gasoline %>% group_by(Month) %>% mutate("diff_between_months" = c(NA, diff(Price)))
+gasoline = gasoline %>% group_by(Year) %>% mutate("diff_between_years" = c(NA, diff(Price)))
+
+ggplot(gasoline) + geom_bar(aes(x = Year,y = diff_year), stat = "identity") + facet_wrap("Month") + theme(axis.text.x = element_text(angle = 60, hjust = 1))
+
+ggplot(gasoline) + geom_bar(aes(x = Month,y = diff_month), stat = "identity") + facet_wrap("Year") + theme(axis.text.x = element_text(angle = 60, hjust = 1))
+
+```
+
+```{r}
+gasoline_1976 = gasoline[gasoline$Year == "1976",]
+
+gasoline_1976$Month = factor(gasoline_1976$Month, levels = c("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"))
+gasoline_1976$Month
+
+ggplot(gasoline_1976) + geom_bar(aes(x = Month,y = diff_month), stat = "identity")
+```
+
