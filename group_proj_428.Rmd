@@ -5,14 +5,24 @@ date: "4/11/2018"
 output: html_document
 ---
 
-```{r}
+```{r message=FALSE, warning=FALSE}
 library(readxl)
 library(tidyr)
 library(ggplot2)
 library(dplyr)
 ```
 
-Cleaning the data:
+## Goals:
+
+1. 
+2. 
+3. 
+
+
+## Data cleaning:
+
+- `gasoline_wide` is the wide data
+- `gasoline` is the long data we are using
 
 ```{r}
 gasoline_wide = read_xlsx("gasoline_price.xlsx")
@@ -22,26 +32,18 @@ gasoline$Month = as.factor(gasoline$Month)
 gasoline$Month = factor(gasoline$Month, levels = c("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"))
 ```
 
+## Price differences between months and between years:
 
 ```{r}
-year_1976 = gasoline[gasoline$Year == "1976",]
-hist(year_1976$Price, breaks = 12)
-ggplot(year_1976) + geom_bar(aes(x = Month, y = Price), stat = "identity")
-
-
-ggplot(gasoline) + geom_bar(aes(x = Year,y = Price), stat = "identity") + facet_wrap("Month")
-```
-
-```{r}
-
 gasoline = gasoline %>% group_by(Month) %>% mutate("diff_between_months" = c(NA, diff(Price)))
 gasoline = gasoline %>% group_by(Year) %>% mutate("diff_between_years" = c(NA, diff(Price)))
 
+# Plot of price changes:
 ggplot(gasoline) + geom_bar(aes(x = Year,y = diff_year), stat = "identity") + facet_wrap("Month") + theme(axis.text.x = element_text(angle = 60, hjust = 1))
 
 ggplot(gasoline) + geom_bar(aes(x = Month,y = diff_month), stat = "identity") + facet_wrap("Year") + theme(axis.text.x = element_text(angle = 60, hjust = 1))
-
 ```
+
 
 ```{r}
 gasoline_1976 = gasoline[gasoline$Year == "1976",]
