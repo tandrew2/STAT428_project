@@ -32,16 +32,67 @@ gasoline$Month = as.factor(gasoline$Month)
 gasoline$Month = factor(gasoline$Month, levels = c("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"))
 ```
 
+
+```{r}
+gasoline_total = gasoline %>% group_by(Year) %>% summarise(average_price = mean(Price, na.rm = TRUE))
+gasoline_total = mutate(gasoline_total, "diff_between_years" = c(0, diff(average_price)))
+ggplot(gasoline_total) + geom_bar(aes(x = Year, y = average_price), stat = "identity")
+ggplot(gasoline_total) + geom_bar(aes(x = Year, y = diff_between_years), stat = "identity")
+```
+
+
+
+
+
 ## Price differences between months and between years:
 
 ```{r}
-gasoline = gasoline %>% group_by(Month) %>% mutate("diff_between_months" = c(NA, diff(Price)))
-gasoline = gasoline %>% group_by(Year) %>% mutate("diff_between_years" = c(NA, diff(Price)))
+gasoline_perm = gasoline %>% group_by(Month) %>% mutate("diff_between_months" = c(NA, diff(Price)))
+gasoline_perm = gasoline_perm %>% group_by(Year) %>% mutate("diff_between_years" = c(NA, diff(Price)))
 
 # Plot of price changes:
-ggplot(gasoline) + geom_bar(aes(x = Year,y = diff_year), stat = "identity") + facet_wrap("Month") + theme(axis.text.x = element_text(angle = 60, hjust = 1))
+ggplot(gasoline_perm) + geom_bar(aes(x = Year,y = diff_between_months), stat = "identity") + facet_wrap("Month") + theme(axis.text.x = element_text(angle = 60, hjust = 1))
 
-ggplot(gasoline) + geom_bar(aes(x = Month,y = diff_month), stat = "identity") + facet_wrap("Year") + theme(axis.text.x = element_text(angle = 60, hjust = 1))
+ggplot(gasoline_perm) + geom_bar(aes(x = Month,y = Price), stat = "identity") + facet_wrap("Year") + theme(axis.text.x = element_text(angle = 60, hjust = 1))
+
+#ggplot(gasoline) + geom_bar(aes(x = Year,y = Price), stat = "identity") + facet_wrap("Month") + theme(axis.text.x = element_text(angle = 60, hjust = 1))
+```
+
+
+
+### Bootstrap:
+
+```{r}
+bootstrap = function(x){
+  T=mean(x)
+  B=10000
+  average_price=numeric(B)
+  for(b in 1:B){
+   xb=sample(x,50,replace=TRUE)
+   average_price[b]=mean(xb, na.rm = TRUE)
+  }
+  ## Plot the empirical CDF of bootstrap replicates
+  hist(average_price)
+  return(mean(average_price))
+}
+
+a = 1976:2004
+normal_mean = numeric(length(a))
+for(i in seq_along(a)){
+  key = as.character(a[i])
+  normal_mean[i] = bootstrap(gasoline_perm[gasoline_perm$Year == key,]$Price)
+}
+
+normal_mean
+length(normal_mean)
+```
+
+
+
+## EDA:
+
+```{r}
+ggplot(gasoline) + geom_bar(aes(x = Year,y = Price), stat = "identity") + facet_wrap("Month") + theme(axis.text.x = element_text(angle = 60, hjust = 1))
 ```
 
 
